@@ -11,7 +11,7 @@ class Application(tk.Tk):
         super().__init__()
         self.geometry("850x600")
 
-        # set the weights
+        # set the weights for self
         self.rowconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
 
@@ -21,8 +21,12 @@ class Application(tk.Tk):
         sidebar_frame.rowconfigure(0, weight=1)
 
         # create the wiget frame
-        self.widget_frame = tk.Frame(self, bg="#222222")
-        self.widget_frame.grid(row=0, column=1, sticky="nsew")
+        self.home_board = tk.Frame(self, bg="#222222")
+        self.home_board.grid(row=0, column=1, sticky="nsew")
+        self.home_board.columnconfigure(0, weight=1)
+        self.home_board.rowconfigure(0, weight=1)
+
+        self.active_board = self.home_board
 
         # get and resize the icon images for use
         board_img_raw = Image.open("images/board_images/icy_fish.png").resize((50, 50))
@@ -36,46 +40,51 @@ class Application(tk.Tk):
     # the function that handles the board creation
     def create_board(self):
         # give the board class what it need and grid it to row=0 clmn=0
-        board_wiget = board(master=self.widget_frame, image=self.board_img)
+        board_wiget = self.board(master=self.active_board, image=self.board_img)
         board_wiget.grid(row=0, column=0)
+        self.active_board = board_wiget.board_frame
 
-# the board
-class board(tk.Label):
-    def __init__(self, master, image):
-        super().__init__(master=master, image=image)
+    # the board
+    class board(tk.Label):
+        def __init__(self, master, image):
+            super().__init__(master=master, image=image)
 
-        # get the offset variables ready
-        self.offset_x = 0
-        self.offset_y = 0
+            # get the offset variables ready
+            self.offset_x = 0
+            self.offset_y = 0
 
-        # the actions the board uses
-        self.bind('<Double-Button-1>', self.open)
-        self.bind("<Button-1>", self.on_drag_start)
-        self.bind("<B1-Motion>", self.on_drag_motion)
+            # the actions the board uses
+            self.bind('<Double-Button-1>', self.open)
+            self.bind("<Button-1>", self.on_drag_start)
+            self.bind("<B1-Motion>", self.on_drag_motion)
 
-    # what happens when you open the board 
-    def open(self, event):
-        print("OPEN!!!")
+            self.board_frame = tk.Frame(self.master, bg="#222222")
 
-    # handle dragging
-    def on_drag_start(self, event):
-        # remove the +X+Y part of geometry
-        only_width_and_hight = self.master.winfo_geometry().split("+")[0]
-        # split the width and hight into the max values of x and y
-        self.max_x, self.max_y = (int(x) for x in only_width_and_hight.split("x"))
+        # what happens when you open the board
+        def open(self, event):
+            self.board_frame.grid(row=0, column=0, sticky="nsew")
+            print("Open!!!")
+            
 
-        widget = event.widget
-        widget._drag_start_x = event.x
-        widget._drag_start_y = event.y
+        # handle dragging
+        def on_drag_start(self, event):
+            # remove the +X+Y part of geometry
+            only_width_and_hight = self.master.winfo_geometry().split("+")[0]
+            # split the width and hight into the max values of x and y
+            self.max_x, self.max_y = (int(x) for x in only_width_and_hight.split("x"))
 
-    def on_drag_motion(self, event):
-        widget = event.widget
-        # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
-        x = max(min(widget.winfo_x() - widget._drag_start_x + event.x, self.max_x - 50), 0)
-        y = max(min(widget.winfo_y() - widget._drag_start_y + event.y, self.max_y - 50) , 0)
-        # place the board
-        widget.place(x=x, y=y)
-    # ----------------
+            widget = event.widget
+            widget._drag_start_x = event.x
+            widget._drag_start_y = event.y
+
+        def on_drag_motion(self, event):
+            widget = event.widget
+            # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
+            x = max(min(widget.winfo_x() - widget._drag_start_x + event.x, self.max_x - 50), 0)
+            y = max(min(widget.winfo_y() - widget._drag_start_y + event.y, self.max_y - 50) , 0)
+            # place the board
+            widget.place(x=x, y=y)
+        # ----------------
 
 if __name__ == "__main__":
     main()

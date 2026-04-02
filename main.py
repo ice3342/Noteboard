@@ -27,6 +27,7 @@ class Application(tk.Tk):
         self.home_board.rowconfigure(0, weight=1)
 
         self.active_board = self.home_board
+        self.boards = [self.home_board]
 
         # get and resize the icon images for use
         board_img_raw = Image.open("images/board_images/icy_fish.png").resize((50, 50))
@@ -40,15 +41,17 @@ class Application(tk.Tk):
     # the function that handles the board creation
     def create_board(self):
         # give the board class what it need and grid it to row=0 clmn=0
-        board_wiget = self.board(master=self.active_board, image=self.board_img)
-        board_wiget.grid(row=0, column=0)
-        self.active_board = board_wiget.board_frame
+        self.boards.append(self.board(master=self.active_board, image=self.board_img, boards=self.boards, active_board=self.active_board))
+        self.boards[-1].grid(row=0, column=0)
+        self.active_board = self.boards[-1]
 
     # the board
     class board(tk.Label):
-        def __init__(self, master, image):
+        def __init__(self, master, image, boards, active_board):
             super().__init__(master=master, image=image)
 
+            self.boards = boards
+            
             # get the offset variables ready
             self.offset_x = 0
             self.offset_y = 0
@@ -58,7 +61,7 @@ class Application(tk.Tk):
             self.bind("<Button-1>", self.on_drag_start)
             self.bind("<B1-Motion>", self.on_drag_motion)
 
-            self.board_frame = tk.Frame(self.master, bg="#222222")
+            self.board_frame = tk.Frame(active_board, bg="#222222")
 
         # what happens when you open the board
         def open(self, event):

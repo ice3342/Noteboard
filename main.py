@@ -1,6 +1,7 @@
 import tkinter as tk
 import os
 from PIL import ImageTk, Image
+import numpy as np
 
 def main():
     app = Application()
@@ -12,22 +13,27 @@ class Application(tk.Tk):
         self.geometry("850x600")
 
         # set the weights for self
-        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
         self.columnconfigure(1, weight=1)
 
         # create the sidebar frame
-        sidebar_frame = tk.Frame(self)
-        sidebar_frame.grid(row=0, column=0, sticky="nsew")
-        sidebar_frame.rowconfigure(0, weight=1)
+        tool_frame = tk.Frame(self)
+        tool_frame.grid(row=1, column=0, sticky="nsew")
+        tool_frame.rowconfigure(0, weight=1)
 
         # create the wiget frame
         self.home_board = tk.Frame(self, bg="#222222")
-        self.home_board.grid(row=0, column=1, sticky="nsew")
+        self.home_board.grid(row=1, column=1, sticky="nsew")
         self.home_board.columnconfigure(0, weight=1)
         self.home_board.rowconfigure(0, weight=1)
 
+        # set the active_board to the home_board
         self.active_board = self.home_board
-        self.boards = [self.home_board]
+
+        boards_bar = tk.Frame(self, bg="#222222")
+        boards_bar.grid(row=0, column=0, sticky="nsew", columnspan=2)
+
+        self.boards = []
 
         # get and resize the icon images for use
         board_img_raw = Image.open("images/board_images/icy_fish.png").resize((50, 50))
@@ -35,23 +41,29 @@ class Application(tk.Tk):
         add_board_btn_img_raw = Image.open("images/btns/boads.png").resize((50, 50))
         add_board_btn_img = ImageTk.PhotoImage(add_board_btn_img_raw)
         # create and grid the add board btn
-        add_board_btn = tk.Button(sidebar_frame, image=add_board_btn_img, bg="#222222", command=self.create_board)
+        add_board_btn = tk.Button(tool_frame, image=add_board_btn_img, bg="#222222", command=self.create_board)
         add_board_btn.grid(row=0, column=0, sticky="nw")
+
+        # create the back btn
+        Home_board_btn = tk.Button(boards_bar, text="Home", command=self.back_to_home, bg="#222222", fg="#eeeeee")
+        Home_board_btn.grid(row=0, column=0, sticky="nw")
 
     # the function that handles the board creation
     def create_board(self):
         # give the board class what it need and grid it to row=0 clmn=0
-        self.boards.append(self.board(master=self.active_board, image=self.board_img, boards=self.boards, active_board=self.active_board))
-        self.boards[-1].grid(row=0, column=0)
-        self.active_board = self.boards[-1]
+        new_board = self.board(master=self.active_board, image=self.board_img, active_board=self.active_board, baords=self.boards).grid(row=0, column=0)
+
+    def back_to_home(self):
+        for board in self.boards:
+            board.grid_forget()
+
+        
 
     # the board
     class board(tk.Label):
-        def __init__(self, master, image, boards, active_board):
+        def __init__(self, master, image, active_board, baords):
             super().__init__(master=master, image=image)
 
-            self.boards = boards
-            
             # get the offset variables ready
             self.offset_x = 0
             self.offset_y = 0
@@ -62,6 +74,7 @@ class Application(tk.Tk):
             self.bind("<B1-Motion>", self.on_drag_motion)
 
             self.board_frame = tk.Frame(active_board, bg="#222222")
+            baords.append(self.board_frame)
 
         # what happens when you open the board
         def open(self, event):

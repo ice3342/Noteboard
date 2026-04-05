@@ -33,6 +33,7 @@ class Application(tk.Tk):
         boards_bar = tk.Frame(self, bg="#222222")
         boards_bar.grid(row=0, column=0, sticky="nsew", columnspan=2)
 
+        self.board_frames = []
         self.boards = []
 
         # get and resize the icon images for use
@@ -51,22 +52,25 @@ class Application(tk.Tk):
     # the function that handles the board creation
     def create_board(self):
         # give the board class what it need and grid it to row=0 clmn=0
-        new_board = self.board(master=self.active_board, image=self.board_img, active_board=self.active_board, baords=self.boards).grid(row=0, column=0)
+        new_board = self.board(master=self.active_board, image=self.board_img, active_board=self.active_board, board_frames=self.board_frames, boards=self.boards).grid(row=0, column=0)
+        self.boards.append(new_board)
 
     def back_to_home(self):
-        for board in self.boards:
-            board.grid_forget()
+            (self.board_frames[x].grid_forget() for x in range(0, len(self.board_frames)))
+            (self.boards[x].grid_forget() for x in range(0, len(self.boards)))
+            
 
-        
 
     # the board
     class board(tk.Label):
-        def __init__(self, master, image, active_board, baords):
+        def __init__(self, master, image, active_board, board_frames, boards):
             super().__init__(master=master, image=image)
 
             # get the offset variables ready
             self.offset_x = 0
             self.offset_y = 0
+
+            self.active_board = active_board
 
             # the actions the board uses
             self.bind('<Double-Button-1>', self.open)
@@ -74,11 +78,12 @@ class Application(tk.Tk):
             self.bind("<B1-Motion>", self.on_drag_motion)
 
             self.board_frame = tk.Frame(active_board, bg="#222222")
-            baords.append(self.board_frame)
+            board_frames.append(self.board_frame)
 
         # what happens when you open the board
         def open(self, event):
             self.board_frame.grid(row=0, column=0, sticky="nsew")
+            self.active_board = self.board_frame
             print("Open!!!")
             
 

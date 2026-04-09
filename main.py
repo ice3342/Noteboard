@@ -52,39 +52,46 @@ class Application(tk.Tk):
     # the function that handles the board creation
     def create_board(self):
         # give the board class what it need and grid it to row=0 clmn=0
-        new_board = self.board(master=self.active_board, image=self.board_img, active_board=self.active_board, board_frames=self.board_frames, boards=self.boards).grid(row=0, column=0)
+        new_board = self.board(master=self.active_board, image=self.board_img, app=self).grid(row=0, column=0)
         self.boards.append(new_board)
 
     def back_to_home(self):
-            (self.board_frames[x].grid_forget() for x in range(0, len(self.board_frames)))
-            (self.boards[x].grid_forget() for x in range(0, len(self.boards)))
+            (self.children[x].grid_forget() for x in self.children.keys())
+            self.active_board = self.home_board
+            print("back home we go!")
             
 
 
     # the board
     class board(tk.Label):
-        def __init__(self, master, image, active_board, board_frames, boards):
+        def __init__(self, master, image, app):
             super().__init__(master=master, image=image)
 
             # get the offset variables ready
             self.offset_x = 0
             self.offset_y = 0
 
-            self.active_board = active_board
-
             # the actions the board uses
             self.bind('<Double-Button-1>', self.open)
             self.bind("<Button-1>", self.on_drag_start)
             self.bind("<B1-Motion>", self.on_drag_motion)
 
-            self.board_frame = tk.Frame(active_board, bg="#222222")
-            board_frames.append(self.board_frame)
+            self.board_frame = tk.Frame(app.active_board, bg="#222222")
+            app.board_frames.append(self.board_frame)
+
+            self.board_frame.rowconfigure(0, weight=1)
+            self.board_frame.columnconfigure(0, weight=1)
+
+            self.app = app
+
+            print(master, "\n")
 
         # what happens when you open the board
         def open(self, event):
+            self.app.active_board = self.board_frame
             self.board_frame.grid(row=0, column=0, sticky="nsew")
-            self.active_board = self.board_frame
-            print("Open!!!")
+            self.board_frame.tkraise()
+            print(f"Opening {self.board_frame}")
             
 
         # handle dragging

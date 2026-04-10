@@ -17,7 +17,7 @@ class Application(tk.Tk):
         self.columnconfigure(1, weight=1)
 
         # create the sidebar frame
-        tool_frame = tk.Frame(self)
+        tool_frame = tk.Frame(self, bg="#242424")
         tool_frame.grid(row=1, column=0, sticky="nsew")
         tool_frame.rowconfigure(0, weight=1)
 
@@ -45,9 +45,10 @@ class Application(tk.Tk):
         add_board_btn = tk.Button(tool_frame, image=add_board_btn_img, bg="#222222", command=self.create_board)
         add_board_btn.grid(row=0, column=0, sticky="nw")
 
-        # create the back btn
-        Home_board_btn = tk.Button(boards_bar, text="Home", command=self.back_to_home, bg="#222222", fg="#eeeeee")
+        # create the back to home btn and is off state
+        Home_board_btn = tk.Button(boards_bar, text="Home", command=self.back_to_home, bg="#222222", fg="#eeeeee", height=1, width=4)
         Home_board_btn.grid(row=0, column=0, sticky="nw")
+        self.Home_board_btn_off = tk.Label(boards_bar, text="Home", bg="#222222", fg="#555555", height=2, width=8)
 
     # the function that handles the board creation
     def create_board(self):
@@ -56,9 +57,12 @@ class Application(tk.Tk):
         self.boards.append(new_board)
 
     def back_to_home(self):
-            (self.children[x].grid_forget() for x in self.children.keys())
-            self.active_board = self.home_board
-            print("back home we go!")
+        for k in self.home_board.children.keys():
+            self.home_board.children[k].grid_forget()
+        self.active_board = self.home_board
+
+        self.Home_board_btn_off.grid(row=0, column=0, sticky="nw")
+        print("back home we go!")
             
 
 

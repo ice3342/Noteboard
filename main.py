@@ -1,7 +1,7 @@
 import tkinter as tk
 import os
 from PIL import ImageTk, Image
-import numpy as np
+import time as tm
 
 def main():
     app = Application()
@@ -46,22 +46,29 @@ class Application(tk.Tk):
         add_board_btn.grid(row=0, column=0, sticky="nw")
 
         # create the back to home btn and is off state
-        Home_board_btn = tk.Button(boards_bar, text="Home", command=self.back_to_home, bg="#222222", fg="#eeeeee", height=1, width=4)
-        Home_board_btn.grid(row=0, column=0, sticky="nw")
-        self.Home_board_btn_off = tk.Label(boards_bar, text="Home", bg="#222222", fg="#555555", height=2, width=8)
+        self.Home_board_btn = tk.Button(boards_bar, text="Home", command=self.back_to_home, bg="#222222", fg="#eeeeee", height=1, width=4, state=tk.DISABLED)
+        self.Home_board_btn.grid(row=0, column=0, sticky="nw")
 
     # the function that handles the board creation
     def create_board(self):
+        center_x = self.home_board.winfo_width() / 2
+        center_y = self.home_board.winfo_height() / 2
         # give the board class what it need and grid it to row=0 clmn=0
-        new_board = self.board(master=self.active_board, image=self.board_img, app=self).grid(row=0, column=0)
+        new_board = self.board(master=self.active_board, image=self.board_img, app=self)
+        print("D; x=", center_x, " y=" ,center_y)
+        new_board.place(x=center_x, y=center_y)
         self.boards.append(new_board)
 
     def back_to_home(self):
-        for k in self.home_board.children.keys():
-            self.home_board.children[k].grid_forget()
+        for child in self.home_board.winfo_children():
+            if isinstance(child, tk.Frame):
+                child.grid_forget()
+            elif child.master != self.home_board:
+                child.place_forget()
+
         self.active_board = self.home_board
 
-        self.Home_board_btn_off.grid(row=0, column=0, sticky="nw")
+        self.Home_board_btn.config(state=tk.DISABLED)
         print("back home we go!")
             
 
@@ -88,26 +95,42 @@ class Application(tk.Tk):
 
             self.app = app
 
-            print(master, "\n")
 
         # what happens when you open the board
         def open(self, event):
-            self.app.active_board = self.board_frame
+            # grid the board_frame to be seen
             self.board_frame.grid(row=0, column=0, sticky="nsew")
             self.board_frame.tkraise()
+
+            for child in self.board_frame.winfo_children():
+                if isinstance(child, tk.Frame):
+                    child.grid_forget()
+                elif child.master != self.board_frame:
+                    child.place_forget()
+
+            # Debuging
             print(f"Opening {self.board_frame}")
-            
+            print(f"parent: {self.app.active_board}")
+
+            # Turn the Back to home button back on
+            self.app.Home_board_btn.config(state=tk.NORMAL)
+
+            # update the avite_board variable
+            self.app.active_board = self.board_frame
+
+
 
         # handle dragging
         def on_drag_start(self, event):
-            # remove the +X+Y part of geometry
-            only_width_and_hight = self.master.winfo_geometry().split("+")[0]
-            # split the width and hight into the max values of x and y
-            self.max_x, self.max_y = (int(x) for x in only_width_and_hight.split("x"))
+                print("yaa you got me ^_^")
+                # remove the +X+Y part of geometry
+                only_width_and_hight = self.master.winfo_geometry().split("+")[0]
+                # split the width and hight into the max values of x and y
+                self.max_x, self.max_y = (int(x) for x in only_width_and_hight.split("x"))
 
-            widget = event.widget
-            widget._drag_start_x = event.x
-            widget._drag_start_y = event.y
+                widget = event.widget
+                widget._drag_start_x = event.x
+                widget._drag_start_y = event.y
 
         def on_drag_motion(self, event):
             widget = event.widget

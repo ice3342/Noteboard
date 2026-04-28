@@ -188,34 +188,51 @@ class Application(tk.Tk):
             self.rowconfigure(0, weight=1)
             self.columnconfigure(0, weight=1)
 
-            entry = tk.Entry(self)
-            entry.grid(row=0, column=0, sticky="nswe")
+            Text = tk.Text(self)
+            Text.grid(row=0, column=0, sticky="nswe")
             resize_point = tk.Label(self, image=app.resize_point_img)
             resize_point.grid(row=0, column=0, sticky="se")
             
             # the actions the entry and resize_point uses
-            entry.bind("<Button-1>", self.on_drag_start)
-            entry.bind("<B1-Motion>", self.on_drag_motion)
+            Text.bind("<Button-1>", self.on_drag_start)
+            Text.bind("<B1-Motion>", self.on_drag_motion)
             resize_point.bind("<Button-1>", self.on_start_resizing)
             resize_point.bind("<B1-Motion>", self.on_resizing)
 
+        # handle resizing
         def on_start_resizing(self, event):
+            # create an instense of the resize handle
+            # to create variables and get is containers width/height
             widget = event.widget
-            widget._drag_start_x = event.x
-            widget._drag_start_y = event.y
+            # get the width/height of the container before any modifying
+            widget.start_width = widget.master.winfo_width()
+            widget.start_height = widget.master.winfo_height()
+            # get the positon of the handle
+            widget.start_x_point = event.x_root
+            widget.start_y_point = event.y_root
+            # Debuging
+            print(f"D: W-{widget.start_width}, H-{widget.start_height}")
             print("D:OSR")
         
         def on_resizing(self, event):
+            # create an instense of the resize handle
             widget = event.widget
 
-            width_int = widget.winfo_x() - widget._drag_start_x + event.x
-            height_int = widget.winfo_y() - widget._drag_start_y + event.y
-            width_float = width_int / 100
-            height_float = height_int / 100
+            # a variable to track how far
+            # the x/y of the pointer is from the start of the resizing
+            dx = event.x_root - widget.start_x_point
+            dy = event.y_root - widget.start_y_point
+            
+            # create a new size for the container
+            # that is more then 40
+            new_width = max(40, widget.start_width + dx)
+            new_height = max(40, widget.start_height + dy)
+            # debuging
+            print(f"D: W-{new_width}, H-{new_height}")
+            # apply the new width/height to the container
+            widget.master.place_configure(width=new_width, height=new_height)
+        # ----------------
 
-            widget.master.config(width=width_float, height=height_float)
-            print(f"D: W-{width_float}, H-{height_float}")
-        
         # handle dragging
         def on_drag_start(self, event):
             print("yaa you got me ^_^")

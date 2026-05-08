@@ -96,7 +96,7 @@ class Application(tk.Tk):
         # create the note
         new_note = self.note(master=self.active_board, app=self)
         # place the note
-        new_note.place(x=center_x, y=center_y)
+        new_note.place(x=center_x, y=center_y, width=300, height=80)
 
     # the function that handles the back to home action
     def back_to_home(self):
@@ -113,18 +113,35 @@ class Application(tk.Tk):
             
 
     # the board
-    class board(tk.Label):
+    class board(tk.Frame):
         def __init__(self, master, image, app):
-            super().__init__(master=master, image=image)
+            super().__init__(master=master, bg="#222222")
+            self.rowconfigure(1, weight=1)
+
+            icon = tk.Label(self, image=image)
+            icon.grid(row=0,column=0)
+            name = tk.Text(self, width=8, height=1,
+                           wrap="word",
+                           bg=self["bg"], fg="#ffffff",
+                           bd=0, highlightthickness=0,
+                           insertbackground="#aaaaaa")
+            name.tag_configure("center", justify="center")
+            name.insert(0.0, "board")
+            name.tag_add("center", "0.0", "end")
+            name.grid(row=1, column=0)
 
             # get the offset variables ready
             self.offset_x = 0
             self.offset_y = 0
 
             # the actions the board uses
-            self.bind('<Double-Button-1>', self.open)
-            self.bind("<Button-1>", self.on_drag_start)
-            self.bind("<B1-Motion>", self.on_drag_motion)
+            icon.bind('<Double-Button-1>', self.open)
+            icon.bind("<Button-1>", self.on_drag_start)
+            icon.bind("<B1-Motion>", self.on_drag_motion)
+            name.bind('<Double-Button-1>', self.open)
+            name.bind("<Button-1>", self.on_drag_start)
+            name.bind("<B1-Motion>", self.on_drag_motion)
+            name.bind("<KeyRelease>", self.on_release)
 
             self.board_frame = tk.Frame(app.active_board, bg="#222222")
             app.board_frames.append(self.board_frame)
@@ -133,6 +150,30 @@ class Application(tk.Tk):
             self.board_frame.columnconfigure(0, weight=1)
 
             self.app = app
+            self.old_name_length = 0
+
+        def on_release(self, event):
+            widget = event.widget
+            widget.tag_add("center", "1.0", "end")
+            first, last = widget.yview()
+            print(f"D: F-{first}, L-{last}")
+
+            if len(widget.get("1.0", "end-1c")) < self.old_name_length:
+                print("D: Del")
+                print(f"D: {widget.get("1.0", "end-1c")}")
+                if widget["width"] > 13 and len(widget.get("1.0", "end-1c")) % 14 == 0:
+                    widget.config(height=int(widget["height"] - 1))
+                elif first == 0 and len(widget.get("1.0", "end-1c")) <= 14 and int(widget["width"]) > 8:
+                    widget.config(width=int(widget["width"]) - 1)
+
+
+            elif widget["width"] > 13 and first > 0:
+                widget.config(height=int(widget["height"] + 1))
+            elif first > 0:
+                widget.config(width=int(widget["width"] + 2))
+            print(f"old L-{self.old_name_length}, new L-{len(widget.get("1.0", "end-1c"))}")
+            print("\n")
+            self.old_name_length = len(widget.get("1.0", "end-1c"))
 
 
         # what happens when you open the board
@@ -163,7 +204,7 @@ class Application(tk.Tk):
         def on_drag_start(self, event):
                 print("yaa you got me ^_^")
                 # remove the +X+Y part of geometry
-                only_width_and_hight = self.master.winfo_geometry().split("+")[0]
+                only_width_and_hight = self.master.master.winfo_geometry().split("+")[0]
                 # split the width and hight into the max values of x and y
                 self.max_x, self.max_y = (int(x) for x in only_width_and_hight.split("x"))
 
@@ -174,10 +215,10 @@ class Application(tk.Tk):
         def on_drag_motion(self, event):
             widget = event.widget
             # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
-            x = max(min(widget.winfo_x() - widget._drag_start_x + event.x, self.max_x - 50), 0)
-            y = max(min(widget.winfo_y() - widget._drag_start_y + event.y, self.max_y - 50) , 0)
+            x = max(min(widget.master.winfo_x() - widget._drag_start_x + event.x, self.max_x - 50), 0)
+            y = max(min(widget.master.winfo_y() - widget._drag_start_y + event.y, self.max_y - 50) , 0)
             # place the board
-            widget.place(x=x, y=y)
+            widget.master.place(x=x, y=y)
         # ----------------
 
     # the Note
@@ -188,7 +229,7 @@ class Application(tk.Tk):
             self.rowconfigure(0, weight=1)
             self.columnconfigure(0, weight=1)
 
-            Text = tk.Text(self)
+            Text = tk.Text(self, wrap="word")
             Text.grid(row=0, column=0, sticky="nswe")
             resize_point = tk.Label(self, image=app.resize_point_img)
             resize_point.grid(row=0, column=0, sticky="se")

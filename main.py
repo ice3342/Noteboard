@@ -1,6 +1,6 @@
 import tkinter as tk
-import os
 from PIL import ImageTk, Image
+import os
 import time as tm
 
 def main():
@@ -138,10 +138,12 @@ class Application(tk.Tk):
             icon.bind('<Double-Button-1>', self.open)
             icon.bind("<Button-1>", self.on_drag_start)
             icon.bind("<B1-Motion>", self.on_drag_motion)
+
             name.bind('<Double-Button-1>', self.open)
             name.bind("<Button-1>", self.on_drag_start)
             name.bind("<B1-Motion>", self.on_drag_motion)
             name.bind("<KeyRelease>", self.on_release)
+            name.bind("<Return>", self.on_enter)
 
             self.board_frame = tk.Frame(app.active_board, bg="#222222")
             app.board_frames.append(self.board_frame)
@@ -174,6 +176,9 @@ class Application(tk.Tk):
             print(f"old L-{self.old_name_length}, new L-{len(widget.get("1.0", "end-1c"))}")
             print("\n")
             self.old_name_length = len(widget.get("1.0", "end-1c"))
+
+        def on_enter(self, event):
+            return "break"
 
 
         # what happens when you open the board

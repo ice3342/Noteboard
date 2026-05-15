@@ -1,0 +1,72 @@
+{
+  "window": {
+    "geometry": "1200x545+389+127",
+    "state": "normal"
+  },
+  "boards": [
+    {
+      "parent_index": -1,
+      "x": 399,
+      "y": 286,
+      "width": 66,
+      "height": 71,
+      "name": "anime",
+      "name_width": 8,
+      "name_height": 1
+    },
+    {
+      "parent_index": 0,
+      "x": 107,
+      "y": 121,
+      "width": 114,
+      "height": 71,
+      "name": "all the anime",
+      "name_width": 14,
+      "name_height": 1
+    },
+    {
+      "parent_index": 1,
+      "x": 47,
+      "y": 439,
+      "width": 66,
+      "height": 71,
+      "name": "board",
+      "name_width": 8,
+      "name_height": 1
+    }
+  ],
+  "notes": [
+    {
+      "parent_index": -1,
+      "x": 108,
+      "y": 146,
+      "width": 300,
+      "height": 80,
+      "text": "so it works right?"
+    },
+    {
+      "parent_index": 0,
+      "x": 764,
+      "y": 204,
+      "width": 507,
+      "height": 402,
+      "text": "------------------------The Top Animes------------------------\nRomance: Toradora!\nIsakai: So im a spider, so what?\nModern: Solo leveling\nMastermind: Eminence in shadow\nMilitary: The Saga of Tanya the Evil\nFantasy: Wistoria: Wand and Sword\nDrama: The Fragrant Flower Blooms with Dignity\nvillain: I\u2019ll Become a Villainess Who Goes Down in History\nVampire: The Case Study of Vanitas\nAction: Sentenced to Be a Hero\nSpy: Mission: Yozakura Family\nGame: No Game, No Life\nPsychological: Re:ZERO -Starting Life in Another World\nSchool: Welcome to Demon School! Iruma-kun\nComedy: Sleepy Princess in the Demon Castle\nMystery: Odd Taxi\nchill: Tonikawa: Over The Moon For You\nsupernatural: Twin Star Exorcists\n------------------------------------\n:Honorable mentions:\nRomance/comedy: urusei yatsura"
+    },
+    {
+      "parent_index": 1,
+      "x": 362,
+      "y": 0,
+      "width": 654,
+      "height": 983,
+      "text": "anime that i love:\nSword art online\nclassroom of the elite\nthe eminence in shadow\nspy x Family\nGuilty Crown\nMisfit of Demon King Academy\nTsukimichi -Moonlit Fantasy-\nsolo leveling\nArifureta: From Commonplace to World\u2019s Strongest\ncall of the night\nMushoku Tensei: Jobless Reincarnation\nRe:Zero starting a life in a new world\nThe Rising of the Shield Hero\nDarwin's Game\nNo Game, No Life\nWorld's Finest Assassin Gets Reincarnated in a Different World as an Aristocrat\nBerserk of Gluttony\nThat Time I Got Reincarnated as a Slime\nso im a spider so what\nAkashic Records of Bastard Magic Instructor\nThe Weakest Tamer Began a Journey to Pick Up Trash\nReincarnated as a Sword\nThe Wrong Way to Use Healing Magic\nThe Genius Prince's Guide to Raising a Nation Out of Debt\nNo Longer Allowed In Another World\nAn Archdemon's Dilemma: How to Love Your Elf Bride\nThe Case Study of Vanitas\nLet This Grieving Soul Retire\nWelcome to Demon School! Iruma-kun\nI'm the Villainess, So I'm Taming the Final Boss\nThe Reason Why Raeliana Ended up at the Duke's Mansion\n7th Time Loop: The Villainess Enjoys a Carefree Life Married to Her Worst Enemy!\nThe Most Heretical Last Boss Queen: From Villainess to Savior\nI\u2019ll Become a Villainess Who Goes Down in History\nVillainess Level 99: I May Be the Hidden Boss but I'm Not the Demon Lord\nOne Punch Man\nA Wild Last Boss Appeared!\nOverlord\nThe Saga of Tanya the Evil\nNoragami\nHell Mode: The Hardcore Gamer Dominates in Another World with Garbage Balancing\nYou and I Are Polar Opposites\nThe Demon King's Daughter Is Too Kind!!\nDelico's Nursery\nSleepy Princess in the Demon Castle\nThe Water Magician\nChillin' in Another World with Level 2 Super Cheat Powers\nWistoria: Wand and Sword\nMashle: Magic and Muscles\nSacrificial Princess and the King of Beasts\nOdd Taxi\nSentenced to Be a Hero\nThe Villainess Is Adored by the Prince of the Neighbor Kingdom\ni got married to the girl i hate in class\nWitch Watch\nTONIKAWA: Over the Moon For You\nRe:ZERO -Starting Life in Another World\nThe Angel Next Door Spoils Me Rotten\nDad is a Hero, Mom is a Spirit, I'm a Reincarnator\nMission: Yozakura Family\nCan a Boy and Girl Friendship Hold Up? (No, It Can't!!)\nThe Dreaming Boy is a Realist\nLoving Yamada at Lv999\nThe Fragrant Flower Blooms with Dignity\nThe Dangers in My Heart\nWelcome to Japan, Ms. Elf!\nTaisho Otome Fairy Tale\nToradora!\nAlya Sometimes Hides Her Feelings in Russian\nhorimiya\nTwin Star Exorcists\nMasamune-kun's Revenge\nYona of the Dawn"
+    },
+    {
+      "parent_index": 2,
+      "x": 399,
+      "y": 286,
+      "width": 300,
+      "height": 80,
+      "text": ""
+    }
+  ]
+}

@@ -23,9 +23,12 @@ class Application(tk.Tk):
 
         # create the wiget frame
         self.home_board = tk.Frame(self, bg="#222222")
-        self.home_board.grid(row=1, column=1, sticky="nsew")
+        self.home_board.place(x=50, y=15, width=1000, height=1000)
+        self.home_board.lower()
         self.home_board.columnconfigure(0, weight=1)
         self.home_board.rowconfigure(0, weight=1)
+        self.home_board.bind("<Button-1>", self.on_drag_start)
+        self.home_board.bind("<B1-Motion>", self.on_drag_motion)
 
         # set the active_board to the home_board
         self.active_board = self.home_board
@@ -162,7 +165,7 @@ class Application(tk.Tk):
             
             # Restore boards
             for board_data in state["boards"]:
-                if board_data["parent_index"] is -1:
+                if board_data["parent_index"] == -1:
                     masters_frame = self.home_board
                 else:
                     masters_frame = self.boards[board_data["parent_index"]].board_frame
@@ -182,7 +185,7 @@ class Application(tk.Tk):
             
             # Restore notes
             for note_data in state["notes"]:
-                if note_data["parent_index"] is -1:
+                if note_data["parent_index"] == -1:
                     masters_frame = self.home_board
                 else:
                     masters_frame = self.boards[note_data["parent_index"]].board_frame
@@ -236,6 +239,30 @@ class Application(tk.Tk):
         # get the Home_board button to is off state
         self.Home_board_btn.config(state=tk.DISABLED, cursor="")
         print("back home we go!")
+
+    # handle dragging
+    def on_drag_start(self, event):
+        print("yaa you got me ^_^")
+        # remove the +X+Y part of geometry
+        only_width_and_hight = event.widget.master.winfo_geometry().split("+")[0]
+        # split the width and hight into the max values of x and y
+        self.max_x, self.max_y = (int(a) for a in only_width_and_hight.split("x"))
+
+        widget = event.widget
+        widget._drag_start_x = event.x
+        widget._drag_start_y = event.y
+        print(f"D: X={widget._drag_start_x}")
+        print(f"D: Y={widget._drag_start_y}")
+
+    def on_drag_motion(self, event):
+        widget = event.widget
+        # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
+        x = min(widget.winfo_x() - widget._drag_start_x + event.x, self.max_x - 50)
+        y = min(widget.winfo_y() - widget._drag_start_y + event.y, self.max_y - 50)
+        # place and extend the board
+        widget.place(x=x, y=y)
+        print(f"D: {widget.winfo_width()}")
+    # ----------------    
             
 
     # the board

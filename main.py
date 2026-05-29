@@ -27,8 +27,8 @@ class Application(tk.Tk):
         self.home_board.lower()
         self.home_board.columnconfigure(0, weight=1)
         self.home_board.rowconfigure(0, weight=1)
-        self.home_board.bind("<Button-1>", self.on_drag_start)
-        self.home_board.bind("<B1-Motion>", self.on_drag_motion)
+        self.home_board.bind("<Button-1>", self.on_MoveBoard_start)
+        self.home_board.bind("<B1-Motion>", self.on_MoveBoard_motion)
         # set the active_board to the home_board
         self.active_board = self.home_board
 
@@ -208,25 +208,26 @@ class Application(tk.Tk):
     # the function that handles the creation of widgets
     def create_widget(self, widget):
         # get the position to place the new board
-        center_x = self.home_board.winfo_width() / 2
-        center_y = self.home_board.winfo_height() / 2
+        center = -self.max_board_movement / 2
+        print(f"D: ", center)
 
         # create Board
         if widget == "board":
             # Creating a new board
             new_board = self.board(master=self.active_board, image=self.board_img, app=self)
             # place the board
-            new_board.place(x=10, y=10)
+            new_board.place(x=center, y=center)
             # record the new board to the boards list
             self.boards.append(new_board)
             print("D: board")
+            print(f"D: {new_board.board_frame}")
 
         # create Note
         elif widget == "note":
             # create the note
             new_note = self.note(master=self.active_board, app=self)
             # place the note
-            new_note.place(x=10, y=10, width=300, height=80)
+            new_note.place(x=center, y=center, width=300, height=80)
             # record the new note to the notes list
             self.notes.append(new_note)
             print("D: note")
@@ -234,10 +235,12 @@ class Application(tk.Tk):
     # the function that handles the back to home action
     def back_to_home(self):
         for child in self.home_board.winfo_children():
-            if isinstance(child, tk.Frame):
-                child.grid_forget()
-            elif child.master != self.home_board:
-                child.place_forget()
+            try:
+                if child.ISMETHEBOARD_FRAME == "Ya is me":
+                    child.place_forget()
+            except AttributeError:
+                if child.master != self.home_board:
+                    child.place_forget()
         # update the active_board variable
         self.active_board = self.home_board
         # get the Home_board button to is off state
@@ -245,13 +248,12 @@ class Application(tk.Tk):
         print("back home we go!")
 
     # handle dragging
-    def on_drag_start(self, event):
+    def on_MoveBoard_start(self, event):
         print("yaa you got me ^_^")
         widget = event.widget
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
         widget.update_idletasks()
-        print("dwd ", self["width"])
 
         for child in widget.children.values():
             right = child.winfo_x() + child.winfo_width()
@@ -270,7 +272,7 @@ class Application(tk.Tk):
         print(f"D: X={widget._drag_start_x}")
         print(f"D: Y={widget._drag_start_y}")
 
-    def on_drag_motion(self, event):
+    def on_MoveBoard_motion(self, event):
         widget = event.widget
         # the action draging nad the max and min values that x and y can be which is set to the border of the frame
         x = max(min(widget.winfo_x() - widget._drag_start_x + event.x, 0), self.max_board_movement)
@@ -317,6 +319,9 @@ class Application(tk.Tk):
 
             self.board_frame = tk.Frame(app.active_board, bg="#222222")
             app.board_frames.append(self.board_frame)
+            self.board_frame.bind("<Button-1>", app.on_MoveBoard_start)
+            self.board_frame.bind("<B1-Motion>", app.on_MoveBoard_motion)
+            self.board_frame.ISMETHEBOARD_FRAME = "Ya is me"
 
             self.board_frame.rowconfigure(0, weight=1)
             self.board_frame.columnconfigure(0, weight=1)
@@ -354,14 +359,16 @@ class Application(tk.Tk):
         # what happens when you open the board
         def open(self, event):
             # grid the board_frame to be seen
-            self.board_frame.grid(row=0, column=0, sticky="nsew")
+            self.board_frame.place(width=2104, height=1261)
             self.board_frame.tkraise()
 
             for child in self.board_frame.winfo_children():
-                if isinstance(child, tk.Frame):
-                    child.grid_forget()
-                elif child.master != self.board_frame:
-                    child.place_forget()
+                try:
+                    if child.ISMETHEBOARD_FRAME == "Ya is me":
+                        child.place_forget()
+                except AttributeError:
+                    if child.master != self.board_frame:
+                        child.place_forget()
 
             # Debuging
             print(f"Opening {self.board_frame}")

@@ -55,20 +55,23 @@ class Application(tk.Tk):
         self.resize_point_img = ImageTk.PhotoImage(resize_point_img_raw)
 
         # create and grid the add board btn
-        add_board_btn = tk.Button(tool_frame, image=add_board_btn_img,
-                                  command=lambda: self.create_widget("board"),
+        add_board_btn = tk.Label(tool_frame, image=add_board_btn_img,
                                     bg="#222222", fg="#eeeeee",
                                     highlightthickness = 0, bd = 0,
                                     activebackground="#222222", activeforeground="#ffffff")
         add_board_btn.grid(row=0, column=0, sticky="nw")
+        add_board_btn.bind("<Button-1>", lambda event: self.create_widget(event, "board"))
+        add_board_btn.bind("<B1-Motion>", self.on_drag_new_widget_motion)
+        add_board_btn.bind("<ButtonRelease-1>", self.on_place_new_widget)
         # create the note creation button
-        add_note_btn = tk.Button(tool_frame,
-                                 image=add_note_btn_img,
-                                 command=lambda: self.create_widget("note"),
-                                    bg="#222222", fg="#eeeeee",
-                                    highlightthickness = 0, bd = 0,
-                                    activebackground="#222222", activeforeground="#ffffff")
+        add_note_btn = tk.Button(tool_frame, 
+                                image=add_note_btn_img, bg="#222222", fg="#eeeeee",
+                                highlightthickness = 0, bd = 0,
+                                activebackground="#222222", activeforeground="#ffffff")
         add_note_btn.grid(row=1, column=0, sticky="nw")
+        add_note_btn.bind("<Button-1>", lambda event: self.create_widget(event, "note"))
+        add_note_btn.bind("<B1-Motion>", self.on_drag_new_widget_motion)
+        add_note_btn.bind("<ButtonRelease-1>", self.on_place_new_widget)
         # create the back to home btn in is off state
         self.Home_board_btn = tk.Button(boards_bar,
                                         text="Home",
@@ -206,31 +209,56 @@ class Application(tk.Tk):
             print(f"Error importing state: {e}")
 
     # the function that handles the creation of widgets
-    def create_widget(self, widget):
-        # get the position to place the new board
-        center = -self.max_board_movement / 2
-        print(f"D: ", center)
-
+    def create_widget(self, event, widget_name):
         # create Board
-        if widget == "board":
+        if widget_name == "board":
             # Creating a new board
             new_board = self.board(master=self.active_board, image=self.board_img, app=self)
-            # place the board
-            new_board.place(x=center, y=center)
             # record the new board to the boards list
             self.boards.append(new_board)
             print("D: board")
             print(f"D: {new_board.board_frame}")
+            new_wig = new_board
 
         # create Note
-        elif widget == "note":
+        elif widget_name == "note":
             # create the note
             new_note = self.note(master=self.active_board, app=self)
-            # place the note
-            new_note.place(x=center, y=center, width=300, height=80)
             # record the new note to the notes list
             self.notes.append(new_note)
             print("D: note")
+            new_wig = new_note
+
+        # on the start of draging the new widget
+        self.update_idletasks()
+        widget = event.widget
+        widget._drag_start_x = event.x
+        widget._drag_start_y = event.y
+        widget.new_wig = new_wig
+
+        outOfBounds = self.winfo_geometry().split("+")[0]
+        widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
+        print(widget.bouds_x, widget.bouds_y)
+
+    # handle dragging
+    def on_drag_new_widget_motion(self, event):
+        widget = event.widget
+        # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
+        if widget.winfo_x() + self.home_board.winfo_x() - widget._drag_start_x + event.x < widget.bouds_x - 50:
+            x = max(widget.winfo_x() - widget._drag_start_x + event.x, 0) - 50
+            if widget.winfo_y() + self.home_board.winfo_y() - widget._drag_start_y + event.y < widget.bouds_y - 50:
+                y = max(widget.winfo_y() - widget._drag_start_y + event.y, 15)
+                # place the board
+                widget.new_wig.place(x=x, y=y)
+    
+    def on_place_new_widget(self, event):
+        widget = event.widget
+        if widget.new_wig.winfo_x() <= -10 or widget.new_wig.winfo_y() <= 15:
+            widget.new_wig.destroy()
+        widget.new_wig.update()
+        print("D: im done updating")
+        
+    # ----------------
 
     # the function that handles the back to home action
     def back_to_home(self):
@@ -247,7 +275,7 @@ class Application(tk.Tk):
         self.Home_board_btn.config(state=tk.DISABLED, cursor="")
         print("back home we go!")
 
-    # handle dragging
+    # handle the moving and expending of the board
     def on_MoveBoard_start(self, event):
         print("yaa you got me ^_^")
         widget = event.widget
@@ -282,7 +310,30 @@ class Application(tk.Tk):
         # place and extend the board
         widget.place(x=x, y=y)
     # ----------------    
-            
+    
+    # handle dragging
+    def on_drag_start(self, event):
+            print("yaa you got me ^_^")
+            self.update_idletasks()
+            widget = event.widget
+            widget._drag_start_x = event.x
+            widget._drag_start_y = event.y
+
+            outOfBounds = self.winfo_geometry().split("+")[0]
+            widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
+            print(widget.bouds_x, widget.bouds_y)
+
+
+    def on_drag_motion(self, event):
+        widget = event.widget
+        # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
+        if widget.master.winfo_x() + self.home_board.winfo_x() - widget._drag_start_x + event.x < widget.bouds_x - 50:
+            x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, 0)
+            if widget.master.winfo_y() + self.home_board.winfo_y() - widget._drag_start_y + event.y < widget.bouds_y - 50:
+                y = max(widget.master.winfo_y() - widget._drag_start_y + event.y, 15)
+                # place the board
+                widget.master.place(x=x, y=y)
+    # ----------------
 
     # the board
     class board(tk.Frame):
@@ -308,12 +359,12 @@ class Application(tk.Tk):
 
             # the actions the board uses
             icon.bind("<Double-Button-1>", self.open)
-            icon.bind("<Button-1>", self.on_drag_start)
-            icon.bind("<B1-Motion>", self.on_drag_motion)
+            icon.bind("<Button-1>", app.on_drag_start)
+            icon.bind("<B1-Motion>", app.on_drag_motion)
 
             name.bind("<Double-Button-1>", self.open)
-            name.bind("<Button-1>", self.on_drag_start)
-            name.bind("<B1-Motion>", self.on_drag_motion)
+            name.bind("<Button-1>", app.on_drag_start)
+            name.bind("<B1-Motion>", app.on_drag_motion)
             name.bind("<KeyRelease>", self.on_release)
             name.bind("<Return>", self.on_enter)
 
@@ -366,7 +417,7 @@ class Application(tk.Tk):
                 try:
                     if child.ISMETHEBOARD_FRAME == "Ya is me":
                         child.place_forget()
-                except AttributeError:
+                except AttributeError: 
                     if child.master != self.board_frame:
                         child.place_forget()
 
@@ -380,30 +431,6 @@ class Application(tk.Tk):
             # update the avite_board variable
             self.app.active_board = self.board_frame
 
-
-        # handle dragging
-        def on_drag_start(self, event):
-                print("yaa you got me ^_^")
-                self.app.update_idletasks()
-                outOfBounds = self.app.winfo_geometry().split("+")[0]
-                self.bouds_x, self.bouds_y =  (int(x) for x in outOfBounds.split("x"))
-                print(self.bouds_x, self.bouds_y)
-
-                widget = event.widget
-                widget._drag_start_x = event.x
-                widget._drag_start_y = event.y
-
-        def on_drag_motion(self, event):
-            widget = event.widget
-            # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
-            if widget.master.winfo_x() + self.app.home_board.winfo_x() - widget._drag_start_x + event.x < self.bouds_x - 50:
-                x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, 0)
-                if widget.master.winfo_y() + self.app.home_board.winfo_y() - widget._drag_start_y + event.y < self.bouds_y - 50:
-                    y = max(widget.master.winfo_y() - widget._drag_start_y + event.y, 15)
-                    # place the board
-                    widget.master.place(x=x, y=y)
-        # ----------------
-
     # the Note
     class note(tk.Frame):
         def __init__(self, master, app):
@@ -412,14 +439,14 @@ class Application(tk.Tk):
             self.rowconfigure(0, weight=1)
             self.columnconfigure(0, weight=1)
 
-            Text = tk.Text(self, wrap="word")
+            Text = tk.Text(self, wrap="word", width=40, height=5)
             Text.grid(row=0, column=0, sticky="nswe")
             resize_point = tk.Label(self, image=app.resize_point_img)
             resize_point.grid(row=0, column=0, sticky="se")
             
             # the actions the entry and resize_point uses
-            Text.bind("<Button-1>", self.on_drag_start)
-            Text.bind("<B1-Motion>", self.on_drag_motion)
+            Text.bind("<Button-1>", app.on_drag_start)
+            Text.bind("<B1-Motion>", app.on_drag_motion)
             resize_point.bind("<Button-1>", self.on_start_resizing)
             resize_point.bind("<B1-Motion>", self.on_resizing)
 
@@ -457,29 +484,6 @@ class Application(tk.Tk):
             print(f"D: W-{new_width}, H-{new_height}")
             # apply the new width/height to the container
             widget.master.place_configure(width=new_width, height=new_height)
-        # ----------------
-
-        # handle dragging
-        def on_drag_start(self, event):
-                print("yaa you got me ^_^")
-                self.app.update_idletasks()
-                outOfBounds = self.app.winfo_geometry().split("+")[0]
-                self.bouds_x, self.bouds_y =  (int(x) for x in outOfBounds.split("x"))
-                print(self.bouds_x, self.bouds_y)
-
-                widget = event.widget
-                widget._drag_start_x = event.x
-                widget._drag_start_y = event.y
-
-        def on_drag_motion(self, event):
-            widget = event.widget
-            # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
-            if widget.master.winfo_x() + self.app.home_board.winfo_x() - widget._drag_start_x + event.x < self.bouds_x - 50:
-                x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, 0)
-                if widget.master.winfo_y() + self.app.home_board.winfo_y() - widget._drag_start_y + event.y < self.bouds_y - 50:
-                    y = max(widget.master.winfo_y() - widget._drag_start_y + event.y, 15)
-                    # place the board
-                    widget.master.place(x=x, y=y)
         # ----------------
 
 

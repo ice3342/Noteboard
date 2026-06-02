@@ -62,7 +62,7 @@ class Application(tk.Tk):
         add_board_btn.grid(row=0, column=0, sticky="nw")
         add_board_btn.bind("<Button-1>", lambda event: self.create_widget(event, "board"))
         add_board_btn.bind("<B1-Motion>", self.on_drag_new_widget_motion)
-        add_board_btn.bind("<ButtonRelease-1>", self.on_place_new_widget)
+        add_board_btn.bind("<ButtonRelease-1>", self.on_place_widget)
         # create the note creation button
         add_note_btn = tk.Button(tool_frame, 
                                 image=add_note_btn_img, bg="#222222", fg="#eeeeee",
@@ -71,7 +71,7 @@ class Application(tk.Tk):
         add_note_btn.grid(row=1, column=0, sticky="nw")
         add_note_btn.bind("<Button-1>", lambda event: self.create_widget(event, "note"))
         add_note_btn.bind("<B1-Motion>", self.on_drag_new_widget_motion)
-        add_note_btn.bind("<ButtonRelease-1>", self.on_place_new_widget)
+        add_note_btn.bind("<ButtonRelease-1>", self.on_place_widget)
         # create the back to home btn in is off state
         self.Home_board_btn = tk.Button(boards_bar,
                                         text="Home",
@@ -146,7 +146,7 @@ class Application(tk.Tk):
             json.dump(state, f, indent=2)
         
         print("State exported successfully!")
-    
+
     def import_state(self):
         """Import and restore all children positions from JSON"""
         try:
@@ -228,6 +228,9 @@ class Application(tk.Tk):
             self.notes.append(new_note)
             print("D: note")
             new_wig = new_note
+        
+        for child in new_wig.children.values():
+            child.bind("<ButtonRelease-1>", self.on_place_widget)
 
         # on the start of draging the new widget
         self.update_idletasks()
@@ -240,7 +243,7 @@ class Application(tk.Tk):
         widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
         print(widget.bouds_x, widget.bouds_y)
 
-    # handle dragging
+    # handle dragging of the new widgets
     def on_drag_new_widget_motion(self, event):
         widget = event.widget
         # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
@@ -248,16 +251,50 @@ class Application(tk.Tk):
             x = max(widget.winfo_x() - widget._drag_start_x + event.x, 0) - 50
             if widget.winfo_y() + self.home_board.winfo_y() - widget._drag_start_y + event.y < widget.bouds_y - 50:
                 y = max(widget.winfo_y() - widget._drag_start_y + event.y, 15)
-                # place the board
+                # place the widget
                 widget.new_wig.place(x=x, y=y)
     
-    def on_place_new_widget(self, event):
-        widget = event.widget
-        if widget.new_wig.winfo_x() <= -10 or widget.new_wig.winfo_y() <= 15:
-            widget.new_wig.destroy()
-        widget.new_wig.update()
+    def on_place_widget(self, event):
+        print("is it working")
+        try:
+            widget = event.widget
+            if widget.new_wig.winfo_x() <= -10 or widget.new_wig.winfo_y() <= 15:
+                if isinstance(widget.new_wig, self.board):
+                    try:
+                        self.boards.remove(widget.new_wig)
+                        self.board_frames.remove(widget.new_wig.board_frame)
+                        widget.new_wig.board_frame.destroy()
+                    except ValueError:
+                        print("E: the board was not on the list")
+                    print("is a board")
+                elif isinstance(widget.new_wig, self.note):
+                    try:
+                        self.notes.remove(widget.new_wig)
+                    except ValueError:
+                        print("E: the note was not on the list")
+                    print("is a note")
+                widget.new_wig.destroy()
+            widget.new_wig.update()
+        except AttributeError:
+            widget = event.widget
+            if widget.master.winfo_x() <= -10 or widget.master.winfo_y() <= 15:
+                if isinstance(widget.master, self.board):
+                    try:
+                        self.boards.remove(widget.master)
+                        self.board_frames.remove(widget.master.board_frame)
+                        widget.master.board_frame.destroy()
+                    except ValueError:
+                        print("E: the board was not on the list")
+                    print("is a board")
+                elif isinstance(widget.master, self.note):
+                    try:
+                        self.notes.remove(widget.master)
+                    except ValueError:
+                        print("E: the note was not on the list")
+                    print("is a note")
+                widget.master.destroy()
+            widget.master.update()
         print("D: im done updating")
-        
     # ----------------
 
     # the function that handles the back to home action
@@ -311,7 +348,7 @@ class Application(tk.Tk):
         widget.place(x=x, y=y)
     # ----------------    
     
-    # handle dragging
+    # handle dragging for the classes
     def on_drag_start(self, event):
             print("yaa you got me ^_^")
             self.update_idletasks()
@@ -323,15 +360,14 @@ class Application(tk.Tk):
             widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
             print(widget.bouds_x, widget.bouds_y)
 
-
     def on_drag_motion(self, event):
         widget = event.widget
         # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
         if widget.master.winfo_x() + self.home_board.winfo_x() - widget._drag_start_x + event.x < widget.bouds_x - 50:
-            x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, 0)
+            x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, -50)
             if widget.master.winfo_y() + self.home_board.winfo_y() - widget._drag_start_y + event.y < widget.bouds_y - 50:
                 y = max(widget.master.winfo_y() - widget._drag_start_y + event.y, 15)
-                # place the board
+                # place the widget
                 widget.master.place(x=x, y=y)
     # ----------------
 

@@ -39,6 +39,7 @@ class Application(tk.Tk):
         self.boards = []
         self.notes = []
         self.max_board_movement = -250
+        self.focused_on = self.home_board
 
         # get and resize the icon images for use
         # the image for the boards icon
@@ -88,6 +89,7 @@ class Application(tk.Tk):
         # Add save/load buttons or keyboard shortcuts
         self.bind("<Control-s>", lambda e: self.export_state())
         self.bind("<Control-o>", lambda e: self.import_state())
+        self.bind("<Delete>", self.on_delete)
     
     def export_state(self):
         """Export all children and their positions to JSON"""
@@ -243,6 +245,33 @@ class Application(tk.Tk):
         widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
         print(widget.bouds_x, widget.bouds_y)
 
+    # the delete widget from the baord action
+    def on_delete(self, event):
+        widget = self.focused_on
+        
+        # is the widget an instance of the baord
+        if isinstance(widget, self.board):
+            # try removing the widget and its board_frame from the there lists if posible 
+            # and delete them
+            try:
+                self.boards.remove(widget)
+                widget.destroy()
+                self.board_frames.remove(widget.board_frame)
+                widget.board_frame.destroy()
+            except ValueError:
+                print("E: the board was not on the list")
+            print("is a board")
+        # is the widget an instance of the note
+        elif isinstance(widget, self.note):
+            # try removing the widget from its list if posible and delete it
+            try:
+                self.notes.remove(widget)
+                widget.destroy()
+
+            except ValueError:
+                print("E: the note was not on the list")
+            print("is a note")
+
     # handle dragging of the new widgets
     def on_drag_new_widget_motion(self, event):
         widget = event.widget
@@ -310,6 +339,7 @@ class Application(tk.Tk):
         self.active_board = self.home_board
         # get the Home_board button to is off state
         self.Home_board_btn.config(state=tk.DISABLED, cursor="")
+        self.focused_on = self.home_board
         print("back home we go!")
 
     # handle the moving and expending of the board
@@ -318,7 +348,7 @@ class Application(tk.Tk):
         widget = event.widget
         widget._drag_start_x = event.x
         widget._drag_start_y = event.y
-        widget.update_idletasks()
+        self.focused_on = widget
 
         for child in widget.children.values():
             right = child.winfo_x() + child.winfo_width()
@@ -350,15 +380,17 @@ class Application(tk.Tk):
     
     # handle dragging for the classes
     def on_drag_start(self, event):
-            print("yaa you got me ^_^")
-            self.update_idletasks()
-            widget = event.widget
-            widget._drag_start_x = event.x
-            widget._drag_start_y = event.y
+        print("yaa you got me ^_^")
+        self.update_idletasks()
+        widget = event.widget
+        widget._drag_start_x = event.x
+        widget._drag_start_y = event.y
+        self.focused_on = widget.master
+        
 
-            outOfBounds = self.winfo_geometry().split("+")[0]
-            widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
-            print(widget.bouds_x, widget.bouds_y)
+        outOfBounds = self.winfo_geometry().split("+")[0]
+        widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
+        print(widget.bouds_x, widget.bouds_y)
 
     def on_drag_motion(self, event):
         widget = event.widget

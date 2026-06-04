@@ -3,6 +3,26 @@
     "geometry": "850x600+102+70",
     "state": "normal"
   },
-  "boards": [],
-  "notes": []
+  "boards": [
+    {
+      "parent_index": -1,
+      "x": 196,
+      "y": 155,
+      "width": 66,
+      "height": 71,
+      "name": "board",
+      "name_width": 8,
+      "name_height": 1
+    }
+  ],
+  "notes": [
+    {
+      "parent_index": -1,
+      "x": 281,
+      "y": 311,
+      "width": 326,
+      "height": 91,
+      "text": "ok so it work?"
+    }
+  ]
 }

@@ -1,13 +1,13 @@
 {
   "window": {
-    "geometry": "850x600+102+70",
+    "geometry": "850x600+0+0",
     "state": "normal"
   },
   "boards": [
     {
       "parent_index": -1,
-      "x": 196,
-      "y": 155,
+      "x": 157,
+      "y": 82,
       "width": 66,
       "height": 71,
       "name": "board",
@@ -18,11 +18,20 @@
   "notes": [
     {
       "parent_index": -1,
-      "x": 281,
-      "y": 311,
+      "x": 334,
+      "y": 254,
       "width": 326,
       "height": 91,
-      "text": "ok so it work?"
+      "text": ""
+    },
+    {
+      "parent_index": 0,
+      "x": 463,
+      "y": 450,
+      "width": 326,
+      "height": 91,
+      "text": ""
     }
-  ]
+  ],
+  "max_board_movement": -250
 }

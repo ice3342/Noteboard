@@ -3,12 +3,14 @@ from PIL import ImageTk, Image
 import os
 import time as tm
 import json
-
+import movement as move
+import widgets as wig
 def main():
     app = Application()
     app.mainloop()
 
 class Application(tk.Tk):
+    # what happends at launch 00
     def __init__(self):
         super().__init__()
         self.geometry("850x600")
@@ -21,14 +23,21 @@ class Application(tk.Tk):
         tool_frame = tk.Frame(self, bg="#242424")
         tool_frame.grid(row=1, column=0, sticky="nsew")
 
+        # active widget frame
+        self.ActiveWig_Frame = tk.Frame(self, bg="#242424")
+        # an empty frame that is there to show you can't change the widget
+        self.empty_frame = tk.Frame(self.ActiveWig_Frame, bg="#242424")
+
         # create the wiget frame
         self.home_board = tk.Frame(self, bg="#222222")
         self.home_board.place(x=50, y=15, width=2104, height=1261)
         self.home_board.lower()
+        self.home_board.app = self
         self.home_board.columnconfigure(0, weight=1)
         self.home_board.rowconfigure(0, weight=1)
-        self.home_board.bind("<Button-1>", self.on_MoveBoard_start)
-        self.home_board.bind("<B1-Motion>", self.on_MoveBoard_motion)
+        self.home_board.bind("<Button-1>", move.on_MoveBoard_start)
+        self.home_board.bind("<B1-Motion>", move.on_MoveBoard_motion)
+        self.home_board.ISMETHEFRAME = "Ya is me"
         # set the active_board to the home_board
         self.active_board = self.home_board
 
@@ -41,22 +50,11 @@ class Application(tk.Tk):
         self.max_board_movement = -250
         self.focused_on = self.home_board
 
-        # get and resize the icon images for use
-        # the image for the boards icon
-        board_img_raw = Image.open("images/board_images/icy_fish.png").resize((50, 50))
-        self.board_img = ImageTk.PhotoImage(board_img_raw)
-        # the image for the button that adds board
-        add_board_btn_img_raw = Image.open("images/widgets/boads.png").resize((50, 50))
-        add_board_btn_img = ImageTk.PhotoImage(add_board_btn_img_raw)
-        # the image for the button that adds notes
-        add_note_btn_img_raw = Image.open("images/widgets/sticky-note_light.png").resize((50, 50))
-        add_note_btn_img = ImageTk.PhotoImage(add_note_btn_img_raw)
-
-        resize_point_img_raw = Image.open("images/widgets/resize_point.png").resize((10, 10))
-        self.resize_point_img = ImageTk.PhotoImage(resize_point_img_raw)
+        # load the images
+        self.loadImages()
 
         # create and grid the add board btn
-        add_board_btn = tk.Label(tool_frame, image=add_board_btn_img,
+        add_board_btn = tk.Label(tool_frame, image=self.add_board_btn_img,
                                     bg="#222222", fg="#eeeeee",
                                     highlightthickness = 0, bd = 0,
                                     activebackground="#222222", activeforeground="#ffffff")
@@ -66,7 +64,7 @@ class Application(tk.Tk):
         add_board_btn.bind("<ButtonRelease-1>", self.on_place_widget)
         # create the note creation button
         add_note_btn = tk.Button(tool_frame, 
-                                image=add_note_btn_img, bg="#222222", fg="#eeeeee",
+                                image=self.add_note_btn_img, bg="#222222", fg="#eeeeee",
                                 highlightthickness = 0, bd = 0,
                                 activebackground="#222222", activeforeground="#ffffff")
         add_note_btn.grid(row=1, column=0, sticky="nw")
@@ -90,7 +88,29 @@ class Application(tk.Tk):
         self.bind("<Control-s>", lambda e: self.export_state())
         self.bind("<Control-o>", lambda e: self.import_state())
         self.bind("<Delete>", self.on_delete)
-    
+
+    # activate the active wigets editor frame
+    def Activate_ActiveWig_Frame(self):
+        # check if its a frame
+        try:
+            if self.focused_on.ISMETHEFRAME == "Ya is me":
+                self.ActiveWig_Frame.grid_forget()
+                print("its a frame")
+        # if not open the widgets editor
+        except AttributeError:
+            # check if the widget has a editor frame
+            try:
+                self.ActiveWig_Frame.grid(row=1, column=0, sticky="nsew")
+                self.focused_on.editor_frame.grid(row=1, column=0, sticky="nsew")
+                self.focused_on.editor_frame.tkraise()
+            # if no, grid an empty one that show there is nothing to change
+            except AttributeError:
+                print("the widget doesn't have an editor frame")
+                self.empty_frame.grid(row=1, column=0, sticky="nsew")
+                self.empty_frame.tkraise()
+            
+
+    # the save funcions 08
     def export_state(self):
         """Export all children and their positions to JSON"""
         state = {
@@ -99,7 +119,8 @@ class Application(tk.Tk):
                 "state": self.state()
             },
             "boards": [],
-            "notes": []
+            "notes": [],
+            "max_board_movement": self.max_board_movement
         }
 
         # Export boards
@@ -163,6 +184,7 @@ class Application(tk.Tk):
             # Clear existing boards and notes
             for board in self.boards:
                 board.destroy()
+                board.board_frame.destroy()
             for note in self.notes:
                 note.destroy()
             self.boards.clear()
@@ -175,7 +197,7 @@ class Application(tk.Tk):
                 else:
                     masters_frame = self.boards[board_data["parent_index"]].board_frame
 
-                new_board = self.board(master=masters_frame,
+                new_board = wig.board(master=masters_frame,
                                        image=self.board_img,
                                        app=self)
                 new_board.place(x=board_data["x"], y=board_data["y"])
@@ -194,7 +216,7 @@ class Application(tk.Tk):
                     masters_frame = self.home_board
                 else:
                     masters_frame = self.boards[note_data["parent_index"]].board_frame
-                new_note = self.note(master=masters_frame, app=self)
+                new_note = wig.note(master=masters_frame, app=self)
                 new_note.place(x=note_data["x"], y=note_data["y"], 
                              width=note_data["width"], height=note_data["height"])
                 # Restore text
@@ -209,13 +231,14 @@ class Application(tk.Tk):
             print("No saved state file found")
         except Exception as e:
             print(f"Error importing state: {e}")
+    # ----------
 
-    # the function that handles the creation of widgets
+    # the function that handles the creation of widgets 03
     def create_widget(self, event, widget_name):
         # create Board
         if widget_name == "board":
             # Creating a new board
-            new_board = self.board(master=self.active_board, image=self.board_img, app=self)
+            new_board = wig.board(master=self.active_board, image=self.board_img, app=self)
             # record the new board to the boards list
             self.boards.append(new_board)
             print("D: board")
@@ -225,7 +248,7 @@ class Application(tk.Tk):
         # create Note
         elif widget_name == "note":
             # create the note
-            new_note = self.note(master=self.active_board, app=self)
+            new_note = wig.note(master=self.active_board, app=self)
             # record the new note to the notes list
             self.notes.append(new_note)
             print("D: note")
@@ -245,12 +268,12 @@ class Application(tk.Tk):
         widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
         print(widget.bouds_x, widget.bouds_y)
 
-    # the delete widget from the baord action
+    # the delete widget from the baord action 02
     def on_delete(self, event):
         widget = self.focused_on
         
         # is the widget an instance of the baord
-        if isinstance(widget, self.board):
+        if isinstance(widget, wig.board):
             # try removing the widget and its board_frame from the there lists if posible 
             # and delete them
             try:
@@ -262,7 +285,7 @@ class Application(tk.Tk):
                 print("E: the board was not on the list")
             print("is a board")
         # is the widget an instance of the note
-        elif isinstance(widget, self.note):
+        elif isinstance(widget, wig.note):
             # try removing the widget from its list if posible and delete it
             try:
                 self.notes.remove(widget)
@@ -272,7 +295,7 @@ class Application(tk.Tk):
                 print("E: the note was not on the list")
             print("is a note")
 
-    # handle dragging of the new widgets
+    # handle dragging of the new widgets 05
     def on_drag_new_widget_motion(self, event):
         widget = event.widget
         # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
@@ -282,13 +305,12 @@ class Application(tk.Tk):
                 y = max(widget.winfo_y() - widget._drag_start_y + event.y, 15)
                 # place the widget
                 widget.new_wig.place(x=x, y=y)
-    
+    # ----------------
     def on_place_widget(self, event):
-        print("is it working")
         try:
             widget = event.widget
             if widget.new_wig.winfo_x() <= -10 or widget.new_wig.winfo_y() <= 15:
-                if isinstance(widget.new_wig, self.board):
+                if isinstance(widget.new_wig, wig.board):
                     try:
                         self.boards.remove(widget.new_wig)
                         self.board_frames.remove(widget.new_wig.board_frame)
@@ -296,7 +318,7 @@ class Application(tk.Tk):
                     except ValueError:
                         print("E: the board was not on the list")
                     print("is a board")
-                elif isinstance(widget.new_wig, self.note):
+                elif isinstance(widget.new_wig, wig.note):
                     try:
                         self.notes.remove(widget.new_wig)
                     except ValueError:
@@ -307,7 +329,7 @@ class Application(tk.Tk):
         except AttributeError:
             widget = event.widget
             if widget.master.winfo_x() <= -10 or widget.master.winfo_y() <= 15:
-                if isinstance(widget.master, self.board):
+                if isinstance(widget.master, wig.board):
                     try:
                         self.boards.remove(widget.master)
                         self.board_frames.remove(widget.master.board_frame)
@@ -315,22 +337,25 @@ class Application(tk.Tk):
                     except ValueError:
                         print("E: the board was not on the list")
                     print("is a board")
-                elif isinstance(widget.master, self.note):
+                elif isinstance(widget.master, wig.note):
                     try:
                         self.notes.remove(widget.master)
                     except ValueError:
                         print("E: the note was not on the list")
                     print("is a note")
                 widget.master.destroy()
-            widget.master.update()
-        print("D: im done updating")
-    # ----------------
+            
 
-    # the function that handles the back to home action
+            elif isinstance(widget.master, wig.note):
+                widget.master.on_anyPress(event)
+
+            widget.master.update()
+
+    # the function that handles the back to home action 06
     def back_to_home(self):
         for child in self.home_board.winfo_children():
             try:
-                if child.ISMETHEBOARD_FRAME == "Ya is me":
+                if child.ISMETHEFRAME == "Ya is me":
                     child.place_forget()
             except AttributeError:
                 if child.master != self.home_board:
@@ -342,217 +367,31 @@ class Application(tk.Tk):
         self.focused_on = self.home_board
         print("back home we go!")
 
-    # handle the moving and expending of the board
-    def on_MoveBoard_start(self, event):
-        print("yaa you got me ^_^")
-        widget = event.widget
-        widget._drag_start_x = event.x
-        widget._drag_start_y = event.y
-        self.focused_on = widget
-
-        for child in widget.children.values():
-            right = child.winfo_x() + child.winfo_width()
-            bottom = child.winfo_y() + child.winfo_height()
-
-            big = 100
-            small_x = right + widget.winfo_x() + self.max_board_movement
-            small_y = bottom + widget.winfo_y() + self.max_board_movement
-            if (small_x >= big or small_y >= big) and (widget.winfo_x() == self.max_board_movement or widget.winfo_y() == self.max_board_movement):
-                self.max_board_movement -= 250
-                widget.place(width = widget.winfo_width() + 250, height = widget.winfo_height() + 250)
-                print("time to grow")
-                print(self.max_board_movement)
-                break
-
-        print(f"D: X={widget._drag_start_x}")
-        print(f"D: Y={widget._drag_start_y}")
-
-    def on_MoveBoard_motion(self, event):
-        widget = event.widget
-        # the action draging nad the max and min values that x and y can be which is set to the border of the frame
-        x = max(min(widget.winfo_x() - widget._drag_start_x + event.x, 0), self.max_board_movement)
-        print(f"D:X-{x}")
-        y = max(min(widget.winfo_y() - widget._drag_start_y + event.y, 0), self.max_board_movement)
-        print(f"D:Y-{y}")
-        # place and extend the board
-        widget.place(x=x, y=y)
-    # ----------------    
-    
-    # handle dragging for the classes
-    def on_drag_start(self, event):
-        print("yaa you got me ^_^")
-        self.update_idletasks()
-        widget = event.widget
-        widget._drag_start_x = event.x
-        widget._drag_start_y = event.y
-        self.focused_on = widget.master
+    def loadImages(self):
+        # get and resize the icon images for use
+        board_img_raw = Image.open("images/board_images/icy_fish.png").resize((50, 50))
+        add_board_btn_img_raw = Image.open("images/widgets/Dark/Tool_bar/boads.png").resize((50, 50))
+        add_note_btn_img_raw = Image.open("images/widgets/Dark/Tool_bar/sticky-note_light.png").resize((50, 50))
+        BPoint_list__btn_img_raw = Image.open("images/widgets/Dark/note/list-interface-symbol.png").resize((50, 50))
+        resize_point_img_raw = Image.open("images/widgets/Dark/note/resize_point.png").resize((15, 15))
         
+        # the image for the boards icon
+        self.board_img = ImageTk.PhotoImage(board_img_raw)
 
-        outOfBounds = self.winfo_geometry().split("+")[0]
-        widget.bouds_x, widget.bouds_y =  (int(x) for x in outOfBounds.split("x"))
-        print(widget.bouds_x, widget.bouds_y)
-
-    def on_drag_motion(self, event):
-        widget = event.widget
-        # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
-        if widget.master.winfo_x() + self.home_board.winfo_x() - widget._drag_start_x + event.x < widget.bouds_x - 50:
-            x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, -50)
-            if widget.master.winfo_y() + self.home_board.winfo_y() - widget._drag_start_y + event.y < widget.bouds_y - 50:
-                y = max(widget.master.winfo_y() - widget._drag_start_y + event.y, 15)
-                # place the widget
-                widget.master.place(x=x, y=y)
-    # ----------------
-
-    # the board
-    class board(tk.Frame):
-        def __init__(self, master, image, app):
-            super().__init__(master=master, bg="#222222")
-            self.rowconfigure(1, weight=1)
-
-            icon = tk.Label(self, image=image)
-            icon.grid(row=0,column=0)
-            name = tk.Text(self, width=8, height=1,
-                           wrap="word",
-                           bg=self["bg"], fg="#ffffff",
-                           bd=0, highlightthickness=0,
-                           insertbackground="#aaaaaa")
-            name.tag_configure("center", justify="center")
-            name.insert(0.0, "board")
-            name.tag_add("center", "0.0", "end")
-            name.grid(row=1, column=0)
-
-            # get the offset variables ready
-            self.offset_x = 0
-            self.offset_y = 0
-
-            # the actions the board uses
-            icon.bind("<Double-Button-1>", self.open)
-            icon.bind("<Button-1>", app.on_drag_start)
-            icon.bind("<B1-Motion>", app.on_drag_motion)
-
-            name.bind("<Double-Button-1>", self.open)
-            name.bind("<Button-1>", app.on_drag_start)
-            name.bind("<B1-Motion>", app.on_drag_motion)
-            name.bind("<KeyRelease>", self.on_release)
-            name.bind("<Return>", self.on_enter)
-
-            self.board_frame = tk.Frame(app.active_board, bg="#222222")
-            app.board_frames.append(self.board_frame)
-            self.board_frame.bind("<Button-1>", app.on_MoveBoard_start)
-            self.board_frame.bind("<B1-Motion>", app.on_MoveBoard_motion)
-            self.board_frame.ISMETHEBOARD_FRAME = "Ya is me"
-
-            self.board_frame.rowconfigure(0, weight=1)
-            self.board_frame.columnconfigure(0, weight=1)
-
-            self.app = app
-            self.old_name_length = 0
-
-        def on_release(self, event):
-            widget = event.widget
-            widget.tag_add("center", "1.0", "end")
-            first, last = widget.yview()
-            print(f"D: F-{first}, L-{last}")
-
-            if len(widget.get("1.0", "end-1c")) < self.old_name_length:
-                print("D: Del")
-                print(f"D: {widget.get("1.0", "end-1c")}")
-                if widget["width"] > 13 and len(widget.get("1.0", "end-1c")) % 14 == 0:
-                    widget.config(height=int(widget["height"] - 1))
-                elif first == 0 and len(widget.get("1.0", "end-1c")) <= 14 and int(widget["width"]) > 8:
-                    widget.config(width=int(widget["width"]) - 1)
-
-
-            elif widget["width"] > 13 and first > 0:
-                widget.config(height=int(widget["height"] + 1))
-            elif first > 0:
-                widget.config(width=int(widget["width"] + 2))
-            print(f"old L-{self.old_name_length}, new L-{len(widget.get("1.0", "end-1c"))}")
-            print("\n")
-            self.old_name_length = len(widget.get("1.0", "end-1c"))
-
-        def on_enter(self, event):
-            return "break"
-
-
-        # what happens when you open the board
-        def open(self, event):
-            # grid the board_frame to be seen
-            self.board_frame.place(width=2104, height=1261)
-            self.board_frame.tkraise()
-
-            for child in self.board_frame.winfo_children():
-                try:
-                    if child.ISMETHEBOARD_FRAME == "Ya is me":
-                        child.place_forget()
-                except AttributeError: 
-                    if child.master != self.board_frame:
-                        child.place_forget()
-
-            # Debuging
-            print(f"Opening {self.board_frame}")
-            print(f"parent: {self.app.active_board}")
-
-            # Turn the Back to home button back on
-            self.app.Home_board_btn.config(state=tk.NORMAL, cursor="hand2")
-
-            # update the avite_board variable
-            self.app.active_board = self.board_frame
-
-    # the Note
-    class note(tk.Frame):
-        def __init__(self, master, app):
-            super().__init__(master=master)
-
-            self.rowconfigure(0, weight=1)
-            self.columnconfigure(0, weight=1)
-
-            Text = tk.Text(self, wrap="word", width=40, height=5)
-            Text.grid(row=0, column=0, sticky="nswe")
-            resize_point = tk.Label(self, image=app.resize_point_img)
-            resize_point.grid(row=0, column=0, sticky="se")
-            
-            # the actions the entry and resize_point uses
-            Text.bind("<Button-1>", app.on_drag_start)
-            Text.bind("<B1-Motion>", app.on_drag_motion)
-            resize_point.bind("<Button-1>", self.on_start_resizing)
-            resize_point.bind("<B1-Motion>", self.on_resizing)
-
-            self.app = app
-
-        # handle resizing
-        def on_start_resizing(self, event):
-            # create an instense of the resize handle
-            # to create variables and get is containers width/height
-            widget = event.widget
-            # get the width/height of the container before any modifying
-            widget.start_width = widget.master.winfo_width()
-            widget.start_height = widget.master.winfo_height()
-            # get the positon of the handle
-            widget.start_x_point = event.x_root
-            widget.start_y_point = event.y_root
-            # Debuging
-            print(f"D: W-{widget.start_width}, H-{widget.start_height}")
-            print("D:OSR")
+        # main buttons
+        # the image for the button that adds board
+        self.add_board_btn_img = ImageTk.PhotoImage(add_board_btn_img_raw)
+        # the image for the button that adds notes
+        self.add_note_btn_img = ImageTk.PhotoImage(add_note_btn_img_raw)
+        # ------------
         
-        def on_resizing(self, event):
-            # create an instense of the resize handle
-            widget = event.widget
+        # note editor frame
+        # the Image for the make bullet-point list button
+        self.make_BPoint_list__btn_img = ImageTk.PhotoImage(BPoint_list__btn_img_raw)
+        # -----------------
 
-            # a variable to track how far
-            # the x/y of the pointer is from the start of the resizing
-            dx = event.x_root - widget.start_x_point
-            dy = event.y_root - widget.start_y_point
-            
-            # create a new size for the container
-            # that is more then 40
-            new_width = max(40, widget.start_width + dx)
-            new_height = max(40, widget.start_height + dy)
-            # debuging
-            print(f"D: W-{new_width}, H-{new_height}")
-            # apply the new width/height to the container
-            widget.master.place_configure(width=new_width, height=new_height)
-        # ----------------
+        # the image for the resize point in note
+        self.resize_point_img = ImageTk.PhotoImage(resize_point_img_raw)
 
 
 if __name__ == "__main__":

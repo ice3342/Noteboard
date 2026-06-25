@@ -14,6 +14,7 @@ class Application(tk.Tk):
     def __init__(self):
         super().__init__()
         self.geometry("850x600")
+        self.title("NoteBoard")
 
         # set the weights for self
         self.rowconfigure(1, weight=1)
@@ -217,13 +218,16 @@ class Application(tk.Tk):
                 else:
                     masters_frame = self.boards[note_data["parent_index"]].board_frame
                 new_note = wig.note(master=masters_frame, app=self)
+                new_note.Text.config(state=tk.NORMAL)
                 new_note.place(x=note_data["x"], y=note_data["y"], 
                              width=note_data["width"], height=note_data["height"])
                 # Restore text
+                print(note_data["text"])
                 text_widget = new_note.winfo_children()[0]
                 text_widget.delete("1.0", "end")
                 text_widget.insert("1.0", note_data["text"])
                 self.notes.append(new_note)
+                new_note.Text.config(state=tk.DISABLED)
             
             print("State imported successfully!")
             
@@ -309,7 +313,7 @@ class Application(tk.Tk):
     def on_place_widget(self, event):
         try:
             widget = event.widget
-            if widget.new_wig.winfo_x() <= -10 or widget.new_wig.winfo_y() <= 15:
+            if widget.new_wig.winfo_x() <= -10:
                 if isinstance(widget.new_wig, wig.board):
                     try:
                         self.boards.remove(widget.new_wig)
@@ -328,7 +332,7 @@ class Application(tk.Tk):
             widget.new_wig.update()
         except AttributeError:
             widget = event.widget
-            if widget.master.winfo_x() <= -10 or widget.master.winfo_y() <= 15:
+            if widget.master.winfo_x() <= -10:
                 if isinstance(widget.master, wig.board):
                     try:
                         self.boards.remove(widget.master)
@@ -346,7 +350,7 @@ class Application(tk.Tk):
                 widget.master.destroy()
             
 
-            elif isinstance(widget.master, wig.note):
+            elif isinstance(widget.master, wig.note) and isinstance(widget, tk.Text):
                 widget.master.on_anyPress(event)
 
             widget.master.update()

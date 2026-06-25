@@ -1,3 +1,5 @@
+import tkinter as tk
+import widgets as wig
 
 # handle dragging for the classes 04
 def on_drag_start(event):
@@ -7,7 +9,8 @@ def on_drag_start(event):
     widget._drag_start_x = event.x
     widget._drag_start_y = event.y
     app.focused_on = widget.master
-    widget.master.focus_set()
+    widget.focused_note = True if isinstance(app.focus_get().master, wig.note) and app.focus_get()["state"] == tk.NORMAL else False
+    widget.focus_set()
     
     print("yaa you got me ^_^")
 
@@ -21,7 +24,7 @@ def on_drag_motion(event):
     widget = event.widget
     app = widget.master.app
     # the action draging nad the max and min values that x and y can be which is set to the border of the frame  
-    if widget.master.winfo_x() + app.home_board.winfo_x() - widget._drag_start_x + event.x < widget.bouds_x - 50:
+    if widget.master.winfo_x() + app.home_board.winfo_x() - widget._drag_start_x + event.x < widget.bouds_x - 50 and widget.focused_note == False:
         x = max(widget.master.winfo_x() - widget._drag_start_x + event.x, -50)
         if widget.master.winfo_y() + app.home_board.winfo_y() - widget._drag_start_y + event.y < widget.bouds_y - 50:
             y = max(widget.master.winfo_y() - widget._drag_start_y + event.y, 15)

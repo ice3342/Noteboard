@@ -108,6 +108,7 @@ class note(tk.Frame):
                        width=40, height=5,
                        bg="#222222", fg="#ffffff",
                        insertbackground="#ffffff",
+                       state=tk.DISABLED,
                        highlightthickness = 0, highlightcolor="#000000")
         self.Text.grid(row=0, column=0, sticky="nswe")
         resize_point = tk.Label(self, image=app.resize_point_img,
@@ -127,8 +128,10 @@ class note(tk.Frame):
 
         # the actions the Text and resize_point uses
         self.Text.bind("<Button-1>", self.on_click)
+        self.Text.bind("<Double-Button-1>", self.except_text)
         self.Text.bind("<B1-Motion>", move.on_drag_motion)
         self.Text.bind("<FocusIn>", self.focus_handler)
+        self.Text.bind("<FocusOut>", self.focus_handler)
         self.Text.bind("<KeyRelease>", self.on_anyPress)
         # if you want the mouse click for on_anyPress go to on_place_widget in main.py
         resize_point.bind("<Button-1>", self.on_click)
@@ -247,7 +250,8 @@ class note(tk.Frame):
             widget.config(highlightcolor="#ffffff", highlightthickness = 2)
         
         elif event.type == tk.EventType.FocusOut:
-            widget.config(highlightcolor="#000000", highlightthickness = 0)
+            widget.config(highlightcolor="#000000", highlightthickness = 0, state=tk.DISABLED)
+            print("OUT")
 
     def make_BPoint_list(self, event):
         BPoint = "•"
@@ -308,3 +312,7 @@ class note(tk.Frame):
             self.Text.delete("insert linestart", "insert linestart +2c")
         elif BPoint not in self.Text.get("insert linestart", "insert lineend"):
             self.Text.insert("insert linestart", f"{BPoint} ")
+
+    def except_text(self, event):
+        self.Text.config(state=tk.NORMAL)
+
